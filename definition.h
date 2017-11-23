@@ -31,8 +31,12 @@
 #define READRES2 4
 #define DONE 8
 
-#define NOS_DEFAULT 2000
-#define TIMEOUT 1.5
+#define NOS_DEFAULT 30000
+#define TIMEOUT 1
+#define X first
+#define Y second
+
+
 struct GETQ{
     std::string host;
     int port;
@@ -62,6 +66,9 @@ bool checkipNoConfirm_s(std::string ip, std::vector<int> listPort, std::ofstream
 
 bool checkPort(int port, std::vector<std::string>listIP, std::ofstream& resultFile);
 bool checkPortNoConfirm(int port, std::vector<std::string>listIP, std::ofstream& resultFile);
+
+bool checkPort_P(std::vector< std::pair<std::string, int> > checkList, std::ofstream& resultFile);
+bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& resultFile);
 
 void readConfig(std::string fileconfig, int * rescan, std::string * savesocks,std::string * portranger, std::string * url, int * timeout, int *thread);
 

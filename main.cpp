@@ -84,12 +84,15 @@ int main()
         sen = listRange[i].second;
         be = ip_to_int(sbe.c_str());
         en = ip_to_int(sen.c_str());
-        for(uint32_t ip = be; ip <= en; ++ip){
+        cout <<be <<  " " << en << endl;
+        uint32_t ip;
+        for(ip = be; ip <= en; ip = ip + (uint32_t) 1) {
             char ipc[20];
             int_to_ip(ip,ipc);
-            //cout << ipc << endl;
+            cout << ipc << endl;
             string s(ipc);
             listIP.pb(s);
+            //break;
         }
     }
 
@@ -133,6 +136,7 @@ int main()
             std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
         }
 */
+/*
         rep(i,listPort.size()){
             auto start = std::chrono::system_clock::now();
             //scan ip per port
@@ -150,6 +154,38 @@ int main()
             std::time_t end_time = std::chrono::system_clock::to_time_t(end);
             std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
         }
+*/
+        vector<pair<string, int> > listCheck;
+        listCheck.clear();
+        rep(i, listPort.size()){
+            rep(j, listIP.size()){
+                pair <string, int> p = make_pair(listIP[j],listPort[i]);
+                listCheck.pb(p);
+                if (listCheck.size() >= 30000){
+                    auto start = std::chrono::system_clock::now();
+                    cout << "processing... " << listCheck.size() << endl;
+                    if (timeoutURL > 0){
+                        checkPort_P(listCheck, resultFile);
+                    } else{
+                        checkPortNoConfirm_P(listCheck, resultFile);
+                    }
+                    auto end = std::chrono::system_clock::now();
+                    std::chrono::duration<double> elapsed_seconds = end-start;
+                    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+                    std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
+                    listCheck.clear();
+                }
+            }
+        }
+        if (listCheck.size() > 0){
+            cout << "processing... " << listCheck.size() << endl;
+            if (timeoutURL > 0){
+                checkPort_P(listCheck, resultFile);
+            } else{
+                checkPortNoConfirm_P(listCheck, resultFile);
+            }
+        }
+        listCheck.clear();
         ++time;
         resultFile.close();
 

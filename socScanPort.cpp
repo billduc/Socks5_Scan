@@ -362,3 +362,199 @@ bool checkPortNoConfirm(int port, std::vector<std::string>listIP, std::ofstream&
         }
     }
 }
+
+bool checkPort_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& outF){
+    WSADATA wsaData;
+    int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+
+    std::vector<GETQ> listCon;
+    listCon.clear();
+    std::stack<GETQ> sCon;
+
+    fd_set rset, wset;
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+
+    int maxfd = -1;
+    rep(i,checkList.size()){
+        GETQ que;
+        que.fd = 0;
+        que.host = checkList[i].X;
+        que.flags = 0;
+        que.port = checkList[i].Y;
+        sCon.push(que);
+    }
+
+    int nconn = 0;
+    while ( !sCon.empty()  || nconn > 0){
+        while (!sCon.empty() && nconn < NOS_DEFAULT) {
+            int fdu = -1;
+            GETQ con = sCon.top();
+            sCon.pop();
+            fdu = sendNon_s(&con, &rset, &wset, &maxfd);
+            if (fdu >= 0 ){
+                listCon.pb(con);
+                ++nconn;
+            }
+        }
+        fd_set rs,ws;
+        rs = rset;
+        ws = wset;
+
+        struct timeval timeout;
+        timeout.tv_sec = TIMEOUT;
+        timeout.tv_usec = 0;
+
+        int n = select(maxfd + 1, &rs, &ws, NULL, &timeout);
+        //std::cout << "max: " << maxfd << std::endl;
+        //rep(i,listCon.size())
+        //    std::cout << listCon.size()<<" " <<listCon[i].host <<" " <<listCon[i].flags << " " <<maxfd<< std::endl;
+        if (n > 0){
+            rep(i,listCon.size()){
+                int fdu = listCon[i].fd;
+                int flags = listCon[i].flags;
+                //std::cout << fdu <<" " << flags << std::endl;
+                if ( (flags & CONNECTING) && ( FD_ISSET(fdu,&rs) || FD_ISSET(fdu,&ws) ) ){
+                    if ( connnectSOCKS5packet1_s(&listCon[i] , &rset,&wset) == INVALID_SOCKET){
+                        FD_CLR(fdu, &wset);
+                        FD_CLR(fdu, &rset);
+                        --nconn;
+                        closesocket(fdu);
+                    }
+                } else if ( (flags & READRES1) && ( FD_ISSET(fdu,&rs) || FD_ISSET(fdu,&ws) ) ){
+                    if ( checkConnnectSOCKS5packet1_s(&listCon[i] , &rset,&wset) ){
+                        if (connnectSOCKS5packet2_s(&listCon[i] , &rset,&wset)  == INVALID_SOCKET){
+                            FD_CLR(fdu, &wset);
+                            FD_CLR(fdu, &rset);
+                            --nconn;
+                            closesocket(fdu);
+                        }
+                        //std::cout <<listC[i].host <<" " <<listC[i].flags <<" "<<fdu << " " << listC[i].port << std::endl;
+                    }else{
+                        FD_CLR(fdu, &wset);
+                        FD_CLR(fdu, &rset);
+                        --nconn;
+                        closesocket(fdu);
+                    }
+                } else if ( (flags & READRES2) && ( FD_ISSET(fdu,&rs) || FD_ISSET(fdu,&ws) ) ){
+                        //std::cout <<"ok reciver 2" << std::endl;
+                    if ( checkConnnectSOCKS5packet2_s(&listCon[i], &rset,&wset)){
+                        outF <<listCon[i].host <<":" << listCon[i].port <<"\n";
+                        std::cout << "     socks5 "<<listCon[i].host <<":" << listCon[i].port << " ok\n";
+                        FD_CLR(fdu, &wset);
+                        FD_CLR(fdu, &rset);
+                        listCon[i].flags = DONE;
+                        closesocket(fdu);
+                        --nconn;
+                    }else{
+                        FD_CLR(fdu, &wset);
+                        FD_CLR(fdu, &rset);
+                        closesocket(fdu);
+                    }
+                }
+            }
+        } else{
+            rep(i,listCon.size()){
+                if (listCon[i].flags != DONE)
+                    {
+                        closesocket(listCon[i].fd);
+                        --nconn;
+                    }
+            }
+            FD_ZERO(&rset);
+            FD_ZERO(&wset);
+            listCon.clear();
+        }
+    }
+}
+bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& outF){
+    WSADATA wsaData;
+    int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+
+    std::vector<GETQ> listCon;
+    listCon.clear();
+    std::stack<GETQ> sCon;
+
+    fd_set rset, wset;
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+
+    int maxfd = -1;
+    rep(i,checkList.size()){
+        GETQ que;
+        que.fd = 0;
+        que.host = checkList[i].X;
+        que.flags = 0;
+        que.port = checkList[i].Y;
+        sCon.push(que);
+    }
+
+    int nconn = 0;
+    while ( !sCon.empty()  || nconn > 0){
+        while (!sCon.empty() && nconn < NOS_DEFAULT) {
+            int fdu = -1;
+            GETQ con = sCon.top();
+            sCon.pop();
+            fdu = sendNon_s(&con, &rset, &wset, &maxfd);
+            if (fdu >= 0 ){
+                listCon.pb(con);
+                ++nconn;
+            }
+        }
+        fd_set rs,ws;
+        rs = rset;
+        ws = wset;
+
+        struct timeval timeout;
+        timeout.tv_sec = TIMEOUT;
+        timeout.tv_usec = 0;
+
+        int n = select(maxfd + 1, &rs, &ws, NULL, &timeout);
+        //std::cout << "max: " << maxfd << std::endl;
+        //rep(i,listCon.size())
+        //    std::cout << listCon.size()<<" " <<listCon[i].host <<" " <<listCon[i].flags << " " <<maxfd<< std::endl;
+        if (n > 0){
+            rep(i,listCon.size()){
+                int fdu = listCon[i].fd;
+                int flags = listCon[i].flags;
+                //std::cout << fdu <<" " << flags << std::endl;
+                if ( (flags & CONNECTING) && ( FD_ISSET(fdu,&rs) || FD_ISSET(fdu,&ws) ) ){
+                        if ( connnectSOCKS5packet1_s(&listCon[i] , &rset,&wset) == INVALID_SOCKET){
+                            FD_CLR(fdu, &wset);
+                            FD_CLR(fdu, &rset);
+                            closesocket(fdu);
+                            --nconn;
+                        } else{
+                            //std::cout <<"ok send 1 " << listCon[i].flags <<"\n";
+                        }
+                } else if (flags & READRES1 && ( FD_ISSET(fdu,&rs) || FD_ISSET(fdu,&ws) ) ){
+                        if ( checkConnnectSOCKS5packet1_s(&listCon[i] , &rset,&wset) ){
+                            outF <<listCon[i].host <<":" << listCon[i].port <<"\n";
+                            std::cout << "     socks5 "<<listCon[i].host <<":" << listCon[i].port << " ok\n";
+                            FD_CLR(fdu, &wset);
+                            FD_CLR(fdu, &rset);
+                            listCon[i].flags = DONE;
+                            closesocket(fdu);
+                            --nconn;
+                        }else{
+                            FD_CLR(fdu, &wset);
+                            FD_CLR(fdu, &rset);
+                            closesocket(fdu);
+                            --nconn;
+                        }
+                }
+            }
+        } else{
+            rep(i,listCon.size()){
+                if (listCon[i].flags != DONE)
+                    {
+                        closesocket(listCon[i].fd);
+                        --nconn;
+                    }
+            }
+            //FD_ZERO(&rset);
+            //FD_ZERO(&wset);
+            listCon.clear();
+        }
+    }
+}

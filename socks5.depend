@@ -1,8 +1,8 @@
 # depslib dependency file v1.0
-1511411256 source:c:\users\hydra\desktop\socks5\main.cpp
+1511437251 source:c:\users\hydra\desktop\socks5\main.cpp
 	"definition.h"
 
-1511411147 c:\users\hydra\desktop\socks5\definition.h
+1511430066 c:\users\hydra\desktop\socks5\definition.h
 	<iostream>
 	<regex>
 	<string>
@@ -37,12 +37,12 @@
 1511234622 source:c:\users\hydra\desktop\socks5\csocks.cpp
 	"CSocks.h"
 
-1511323057 source:c:\users\hydra\desktop\socks5\ip.cpp
+1511431395 source:c:\users\hydra\desktop\socks5\ip.cpp
 	"definition.h"
 
 1511320152 source:c:\users\hydra\desktop\socks5\config.cpp
 	"definition.h"
 
-1511410952 source:c:\users\hydra\desktop\socks5\socscanport.cpp
+1511426264 source:c:\users\hydra\desktop\socks5\socscanport.cpp
 	"definition.h"
 
