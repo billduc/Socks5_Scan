@@ -1,0 +1,6 @@
+﻿Rescan = 0
+savesocks = socks.txt
+portranger = port.txt
+URLcheck = google.com
+RequestURLcheck = 0
+Threads = 500
