@@ -44,6 +44,7 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="port.cpp" />
 		<Unit filename="socScan.cpp" />
+		<Unit filename="socScanPort.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

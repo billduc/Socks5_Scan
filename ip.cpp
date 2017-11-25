@@ -66,16 +66,16 @@ void  getListIp(std::string namefile,std::vector<std::string> *listIP, std::vect
         std::pair<std::string,std::string> ss;
         while (getline(inputfile, line) ){
             if (line.length() > 0){
-                std::cout <<line <<" "<< line.length() << std::endl;
+                //std::cout <<line <<" "<< line.length() << std::endl;
                 if (line.length() <= 22){
                     std::string ip = get_ip(line, e);
-                    std::cout <<"ip " << ip << std::endl;
+                    //std::cout <<"ip " << ip << std::endl;
                     listIP->push_back(ip);
                 }
                 else{
                     ss = get_range(line, ee);
                     listRange->push_back(ss);
-                    std::cout << "range: "<<ss.first <<" " << ss.second<< std::endl;
+                    //std::cout << "range: "<<ss.first <<" " << ss.second<< std::endl;
                 }
             }
 

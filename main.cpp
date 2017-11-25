@@ -84,12 +84,12 @@ int main()
         sen = listRange[i].second;
         be = ip_to_int(sbe.c_str());
         en = ip_to_int(sen.c_str());
-        cout <<be <<  " " << en << endl;
+        //cout <<be <<  " " << en << endl;
         uint32_t ip;
         for(ip = be; ip <= en; ip = ip + (uint32_t) 1) {
             char ipc[20];
             int_to_ip(ip,ipc);
-            cout << ipc << endl;
+            //cout << ipc << endl;
             string s(ipc);
             listIP.pb(s);
             //break;
@@ -109,15 +109,16 @@ int main()
 
     //uncomment to save log file
     //freopen("log.txt","w",stdout);
-
+    string fileres ="result/" + savesocks;
+    resultFile.open(fileres.c_str());
     int time = 1;
     while(1)
     {
-        std::stringstream sstm;
-        sstm << time;
-        string fileres ="result/" + sstm.str() + savesocks;
-        resultFile.open(fileres.c_str());
-        cout << "+ " << fileres <<endl << endl;
+        //std::stringstream sstm;
+        //sstm << time;
+        //string fileres ="result/" + sstm.str() + savesocks;
+        //resultFile.open(fileres.c_str());
+        resultFile << "_____scan " << time << ":" <<endl << endl;
 /*
         rep(i,listIP.size()){
             auto start = std::chrono::system_clock::now();
@@ -155,6 +156,9 @@ int main()
             std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
         }
 */
+
+/*
+        auto start = std::chrono::system_clock::now();
         vector<pair<string, int> > listCheck;
         listCheck.clear();
         rep(i, listPort.size()){
@@ -162,17 +166,17 @@ int main()
                 pair <string, int> p = make_pair(listIP[j],listPort[i]);
                 listCheck.pb(p);
                 if (listCheck.size() >= 30000){
-                    auto start = std::chrono::system_clock::now();
+                    //auto start = std::chrono::system_clock::now();
                     cout << "processing... " << listCheck.size() << endl;
                     if (timeoutURL > 0){
                         checkPort_P(listCheck, resultFile);
                     } else{
                         checkPortNoConfirm_P(listCheck, resultFile);
                     }
-                    auto end = std::chrono::system_clock::now();
-                    std::chrono::duration<double> elapsed_seconds = end-start;
-                    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-                    std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
+                    //auto end = std::chrono::system_clock::now();
+                    //std::chrono::duration<double> elapsed_seconds = end-start;
+                    //std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+                    //std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
                     listCheck.clear();
                 }
             }
@@ -188,12 +192,107 @@ int main()
         listCheck.clear();
         ++time;
         resultFile.close();
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
+        */
+        //multi thread
+        auto start = std::chrono::system_clock::now();
+        vector<pair<string, int> > listCheck1,listCheck2,listCheck3,listCheck4,listCheck5,listCheck6;
+        listCheck1.clear();
+        listCheck2.clear();
+        listCheck3.clear();
+        listCheck4.clear();
+        listCheck5.clear();
+        rep(i, listPort.size()){
+            rep(j, listIP.size()){
+                pair <string, int> p = make_pair(listIP[j],listPort[i]);
+                if (listCheck1.size() < 10000){
+                    listCheck1.pb(p);
+                    continue;
+                } else if (listCheck2.size() < 10000){
+                    listCheck2.pb(p);
+                    continue;
+                } else if (listCheck3.size() < 10000){
+                    listCheck3.pb(p);
+                    continue;
+                } else if (listCheck4.size() < 10000){
+                    listCheck4.pb(p);
+                    continue;
+                } else if (listCheck5.size() < 10000){
+                    listCheck5.pb(p);
+                    continue;
+                } else{
+                    cout << "processing... " << listCheck1.size() << " " << listCheck2.size() << " " << listCheck3.size() << " " << listCheck4.size() << " " << listCheck5.size() << endl;
+                    std::thread task1(checkPortNoConfirm_P,std::ref(listCheck1),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+                    std::thread task2(checkPortNoConfirm_P,std::ref(listCheck2),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+                    std::thread task3(checkPortNoConfirm_P,std::ref(listCheck3),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+                    std::thread task4(checkPortNoConfirm_P,std::ref(listCheck4),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+                    std::thread task5(checkPortNoConfirm_P,std::ref(listCheck5),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+
+
+
+                    if (task1.joinable())
+                        task1.join();
+                    if (task2.joinable())
+                        task2.join();
+                    if (task3.joinable())
+                        task3.join();
+                    if (task4.joinable())
+                        task4.join();
+                    if (task5.joinable())
+                        task5.join();
+
+
+                    listCheck1.clear();
+                    listCheck2.clear();
+                    listCheck3.clear();
+                    listCheck4.clear();
+                    listCheck5.clear();
+
+                }
+            }
+        }
+        cout << "processing... " << listCheck1.size() << " " << listCheck2.size() << " " << listCheck3.size() << " " << listCheck4.size() << " " << listCheck5.size() << endl;
+        std::thread task1(checkPortNoConfirm_P,std::ref(listCheck1),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+        std::thread task2(checkPortNoConfirm_P,std::ref(listCheck2),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+        std::thread task3(checkPortNoConfirm_P,std::ref(listCheck3),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+        std::thread task4(checkPortNoConfirm_P,std::ref(listCheck4),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+        std::thread task5(checkPortNoConfirm_P,std::ref(listCheck5),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+        std::thread task6(checkPortNoConfirm_P,std::ref(listCheck6),std::ref(resultFile),std::ref(threadnum),std::ref(timeoutURL));
+
+        if (task1.joinable())
+            task1.join();
+        if (task2.joinable())
+            task2.join();
+        if (task3.joinable())
+            task3.join();
+        if (task4.joinable())
+            task4.join();
+        if (task5.joinable())
+            task5.join();
+        if (task6.joinable())
+            task6.join();
+        listCheck1.clear();
+        listCheck2.clear();
+        listCheck3.clear();
+        listCheck4.clear();
+        listCheck5.clear();
+        listCheck6.clear();
+
+        ++time;
+        //resultFile.close();
+        auto end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+        std::cout << "     Time: " << elapsed_seconds.count() << " (s)\n";
 
         cout << endl<<"DONE\n" << "__________________________________________________________________" <<endl;
         Sleep(1000 * 60 * rescan);
 
     }
-    //resultFile.close();
+    resultFile.close();
     //scan("37.220.31.34 ", 46234);
     return 0;
 }

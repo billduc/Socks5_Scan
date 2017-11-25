@@ -2,5 +2,5 @@
 savesocks = socks.txt
 portranger = port.txt
 URLcheck = google.com
-RequestURLcheck = 1
+RequestURLcheck = 0
 Threads = 500

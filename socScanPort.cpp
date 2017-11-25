@@ -130,6 +130,9 @@ bool checkConnnectSOCKS5packet2_s(GETQ * get , fd_set * rset, fd_set * wset) {
 }
 
 int sendNon_s(GETQ *get, fd_set * rset, fd_set * wset, int * maxfd){
+    WSADATA wsaData;
+    int iResults = WSAStartup(MAKEWORD(2,2), &wsaData);
+
     int n, flags;
 
     struct sockaddr_in addr;
@@ -363,7 +366,7 @@ bool checkPortNoConfirm(int port, std::vector<std::string>listIP, std::ofstream&
     }
 }
 
-bool checkPort_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& outF){
+bool checkPort_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& outF, int nos, int timeout){
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 
@@ -394,6 +397,7 @@ bool checkPort_P(std::vector<std::pair<std::string, int> > checkList, std::ofstr
             fdu = sendNon_s(&con, &rset, &wset, &maxfd);
             if (fdu >= 0 ){
                 listCon.pb(con);
+                std::cout <<"fd: " << con.fd << std::endl;
                 ++nconn;
             }
         }
@@ -467,9 +471,7 @@ bool checkPort_P(std::vector<std::pair<std::string, int> > checkList, std::ofstr
         }
     }
 }
-bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& outF){
-    WSADATA wsaData;
-    int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, std::ofstream& outF, int nos, int timeout){
 
     std::vector<GETQ> listCon;
     listCon.clear();
@@ -496,7 +498,8 @@ bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, s
             GETQ con = sCon.top();
             sCon.pop();
             fdu = sendNon_s(&con, &rset, &wset, &maxfd);
-            if (fdu >= 0 ){
+            if (fdu > 0 ){
+                //std::cout <<"fd: "  << fdu << std::endl;
                 listCon.pb(con);
                 ++nconn;
             }
@@ -510,15 +513,16 @@ bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, s
         timeout.tv_usec = 0;
 
         int n = select(maxfd + 1, &rs, &ws, NULL, &timeout);
-        //std::cout << "max: " << maxfd << std::endl;
+        //std::cout << "max: " << maxfd <<" " << " "<< sCon.size() << " " << listCon.size() << " " << n <<" ";// std::endl;
         //rep(i,listCon.size())
-        //    std::cout << listCon.size()<<" " <<listCon[i].host <<" " <<listCon[i].flags << " " <<maxfd<< std::endl;
+        //std::cout << listCon.size()<<" " <<listCon[i].host <<" " <<listCon[i].flags << " " <<maxfd << " ";// std::endl;
         if (n > 0){
             rep(i,listCon.size()){
                 int fdu = listCon[i].fd;
                 int flags = listCon[i].flags;
                 //std::cout << fdu <<" " << flags << std::endl;
                 if ( (flags & CONNECTING) && ( FD_ISSET(fdu,&rs) || FD_ISSET(fdu,&ws) ) ){
+                        std::cout <<listCon[i].host <<":"<< listCon[i].port << std::endl;
                         if ( connnectSOCKS5packet1_s(&listCon[i] , &rset,&wset) == INVALID_SOCKET){
                             FD_CLR(fdu, &wset);
                             FD_CLR(fdu, &rset);
@@ -552,8 +556,8 @@ bool checkPortNoConfirm_P(std::vector<std::pair<std::string, int> > checkList, s
                         --nconn;
                     }
             }
-            //FD_ZERO(&rset);
-            //FD_ZERO(&wset);
+            FD_ZERO(&rset);
+            FD_ZERO(&wset);
             listCon.clear();
         }
     }
